@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 来源清单更新脚本
 功能：
@@ -15,9 +14,8 @@ import json
 import os
 import sys
 from datetime import datetime
-from urllib.request import urlopen, Request
 from urllib.error import URLError
-
+from urllib.request import Request, urlopen
 
 DEFAULT_MANIFEST = "source-manifest.json"
 
@@ -86,12 +84,14 @@ def check_all_sources(manifest: dict) -> dict:
             print("✓")
         else:
             print(f"✗ ({msg})")
-            issues.append({
-                "source_id": src.get("id"),
-                "title": src.get("title"),
-                "url": url,
-                "issue": msg,
-            })
+            issues.append(
+                {
+                    "source_id": src.get("id"),
+                    "title": src.get("title"),
+                    "url": url,
+                    "issue": msg,
+                }
+            )
     return {
         "checked_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "total": len(manifest.get("sources", [])),
@@ -117,7 +117,11 @@ def mark_historical(manifest: dict, source_id: str) -> dict:
 
 def generate_changelog(manifest: dict) -> str:
     """生成变更日志摘要"""
-    lines = [f"# 来源清单变更日志", f"\n更新日期: {datetime.now().strftime('%Y-%m-%d')}", ""]
+    lines = [
+        "# 来源清单变更日志",
+        f"\n更新日期: {datetime.now().strftime('%Y-%m-%d')}",
+        "",
+    ]
     for src in manifest.get("sources", []):
         notes = src.get("notes", "")
         status = src.get("status", "unknown")
@@ -128,7 +132,9 @@ def generate_changelog(manifest: dict) -> str:
             marker = "[被替代]"
         elif status == "uncertain":
             marker = "[状态不确定]"
-        lines.append(f"- {marker} {src.get('title', '未命名')} ({src.get('id')}) - {status}")
+        lines.append(
+            f"- {marker} {src.get('title', '未命名')} ({src.get('id')}) - {status}"
+        )
         if notes:
             lines.append(f"  备注: {notes}")
     return "\n".join(lines)
@@ -150,20 +156,28 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="海关资料来源清单管理工具")
-    parser.add_argument("--manifest", default=DEFAULT_MANIFEST,
-                        help=f"来源清单文件路径（默认: {DEFAULT_MANIFEST}）")
-    parser.add_argument("--update-dates", action="store_true",
-                        help="更新所有当前来源的查询日期")
-    parser.add_argument("--check", action="store_true",
-                        help="检查所有来源URL的可访问性")
-    parser.add_argument("--mark-historical", type=str, metavar="SOURCE_ID",
-                        help="将指定来源标记为历史版本")
-    parser.add_argument("--changelog", action="store_true",
-                        help="生成变更日志")
-    parser.add_argument("--remind", action="store_true",
-                        help="显示需要重新核实的动态资料")
-    parser.add_argument("--status", action="store_true",
-                        help="显示来源状态摘要")
+    parser.add_argument(
+        "--manifest",
+        default=DEFAULT_MANIFEST,
+        help=f"来源清单文件路径（默认: {DEFAULT_MANIFEST}）",
+    )
+    parser.add_argument(
+        "--update-dates", action="store_true", help="更新所有当前来源的查询日期"
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="检查所有来源URL的可访问性"
+    )
+    parser.add_argument(
+        "--mark-historical",
+        type=str,
+        metavar="SOURCE_ID",
+        help="将指定来源标记为历史版本",
+    )
+    parser.add_argument("--changelog", action="store_true", help="生成变更日志")
+    parser.add_argument(
+        "--remind", action="store_true", help="显示需要重新核实的动态资料"
+    )
+    parser.add_argument("--status", action="store_true", help="显示来源状态摘要")
 
     args = parser.parse_args()
 
@@ -179,8 +193,7 @@ if __name__ == "__main__":
     if args.check:
         print("检查来源可访问性...\n")
         result = check_all_sources(manifest)
-        print(f"\n检查完成: {result['total']}个来源, "
-              f"{result['issues_found']}个问题")
+        print(f"\n检查完成: {result['total']}个来源, {result['issues_found']}个问题")
         if result["issues"]:
             print("\n问题详情:")
             for issue in result["issues"]:
@@ -217,8 +230,16 @@ if __name__ == "__main__":
         print(f"  总计: {sum(statuses.values())}个来源")
 
     # 如果没有指定任何参数，打印帮助
-    if not any([args.update_dates, args.check, args.mark_historical,
-                args.changelog, args.remind, args.status]):
+    if not any(
+        [
+            args.update_dates,
+            args.check,
+            args.mark_historical,
+            args.changelog,
+            args.remind,
+            args.status,
+        ]
+    ):
         print("未指定操作。使用 --help 查看可用选项。\n")
         print("常用命令:")
         print("  --status        查看来源状态摘要")
