@@ -1,0 +1,44 @@
+{
+  "name": "china-customs-declaration-expert",
+  "version": "1.0.0",
+  "description": "China import/export customs declaration & HS classification expert: HS code advice, standardized declaration elements, document checks, and regulatory risk screening.",
+  "author": {
+    "name": "Eason Wong",
+    "email": "easonwong2026-del@users.noreply.github.com"
+  },
+  "agents": ["./agents/china-customs-declaration-expert.md"],
+  "skills": ["./skills/china-customs-declaration"],
+
+  "expertType": "agent",
+  "agentName": "china-customs-declaration-expert",
+
+  "displayName": {
+    "en": "China Customs Declaration Assistant",
+    "zh": "中国报关归类助手"
+  },
+  "profession": {
+    "en": "Customs Declaration & HS Classification Expert",
+    "zh": "报关与商品归类专家"
+  },
+  "displayDescription": {
+    "en": "Professional assistant for China import/export customs: HS classification, declaration elements, document checks, and regulatory risk screening.",
+    "zh": "专业辅助中国进出口报关全流程：HS编码归类、规范申报要素整理、单据一致性检查与监管风险识别。"
+  },
+  "avatar": "avatars/expert.png",
+  "categoryId": "11-SecurityCompliance",
+  "defaultInitPrompt": {
+    "zh": "帮我给这个产品做HS编码归类",
+    "en": "Help me classify this product's HS code"
+  },
+  "plugin": "china-customs-declaration-expert",
+  "tags": [
+    { "en": "HS Classification", "zh": "HS编码归类" },
+    { "en": "Declaration Elements", "zh": "规范申报要素" },
+    { "en": "Regulatory Risk", "zh": "监管风险识别" }
+  ],
+  "quickPrompts": [
+    { "en": "Help me classify this product's HS code", "zh": "帮我给这个产品做HS编码归类" },
+    { "en": "Organize the declaration elements for these goods", "zh": "整理这批商品的规范申报要素" },
+    { "en": "Check the compliance risks in this customs document", "zh": "检查这份报关单据的合规风险" }
+  ]
+}
