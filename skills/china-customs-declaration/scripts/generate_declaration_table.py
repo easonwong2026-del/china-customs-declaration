@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 报关资料表格生成脚本
 从商品数据生成：
@@ -13,12 +12,12 @@
 支持格式：XLSX, CSV, JSON
 """
 
-import json
 import csv
-import sys
+import json
 import os
-from typing import Any
+import sys
 from datetime import datetime
+from typing import Any
 
 
 def generate_summary_table(data: list[dict]) -> list[dict]:
@@ -93,60 +92,72 @@ def generate_declaration_elements(data: list[dict]) -> list[dict]:
     """生成申报要素明细表"""
     elements = []
     for i, row in enumerate(data, 1):
-        elements.append({
-            "项号": i,
-            "HS编码": row.get("HS编码", ""),
-            "品名": row.get("中文品名", ""),
-            "申报字段": "品牌类型",
-            "申报内容": row.get("品牌类型", "待确认"),
-            "信息来源": row.get("信息来源", ""),
-            "状态": row.get("品牌类型状态", "待确认"),
-        })
-        elements.append({
-            "项号": i,
-            "HS编码": row.get("HS编码", ""),
-            "品名": row.get("中文品名", ""),
-            "申报字段": "出口享惠情况",
-            "申报内容": row.get("出口享惠情况", "待确认"),
-            "信息来源": "",
-            "状态": "待确认",
-        })
-        elements.append({
-            "项号": i,
-            "HS编码": row.get("HS编码", ""),
-            "品名": row.get("中文品名", ""),
-            "申报字段": "用途",
-            "申报内容": row.get("用途", "待确认"),
-            "信息来源": row.get("信息来源", ""),
-            "状态": "已确认" if row.get("用途") else "待确认",
-        })
-        elements.append({
-            "项号": i,
-            "HS编码": row.get("HS编码", ""),
-            "品名": row.get("中文品名", ""),
-            "申报字段": "品牌",
-            "申报内容": row.get("品牌", "待确认"),
-            "信息来源": row.get("信息来源", ""),
-            "状态": "已确认" if row.get("品牌") else "待确认",
-        })
-        elements.append({
-            "项号": i,
-            "HS编码": row.get("HS编码", ""),
-            "品名": row.get("中文品名", ""),
-            "申报字段": "型号",
-            "申报内容": row.get("型号", "待确认"),
-            "信息来源": row.get("信息来源", ""),
-            "状态": "已确认" if row.get("型号") else "待确认",
-        })
-        elements.append({
-            "项号": i,
-            "HS编码": row.get("HS编码", ""),
-            "品名": row.get("中文品名", ""),
-            "申报字段": "其他",
-            "申报内容": row.get("其他", "待确认"),
-            "信息来源": row.get("信息来源", ""),
-            "状态": "待确认",
-        })
+        elements.append(
+            {
+                "项号": i,
+                "HS编码": row.get("HS编码", ""),
+                "品名": row.get("中文品名", ""),
+                "申报字段": "品牌类型",
+                "申报内容": row.get("品牌类型", "待确认"),
+                "信息来源": row.get("信息来源", ""),
+                "状态": row.get("品牌类型状态", "待确认"),
+            }
+        )
+        elements.append(
+            {
+                "项号": i,
+                "HS编码": row.get("HS编码", ""),
+                "品名": row.get("中文品名", ""),
+                "申报字段": "出口享惠情况",
+                "申报内容": row.get("出口享惠情况", "待确认"),
+                "信息来源": "",
+                "状态": "待确认",
+            }
+        )
+        elements.append(
+            {
+                "项号": i,
+                "HS编码": row.get("HS编码", ""),
+                "品名": row.get("中文品名", ""),
+                "申报字段": "用途",
+                "申报内容": row.get("用途", "待确认"),
+                "信息来源": row.get("信息来源", ""),
+                "状态": "已确认" if row.get("用途") else "待确认",
+            }
+        )
+        elements.append(
+            {
+                "项号": i,
+                "HS编码": row.get("HS编码", ""),
+                "品名": row.get("中文品名", ""),
+                "申报字段": "品牌",
+                "申报内容": row.get("品牌", "待确认"),
+                "信息来源": row.get("信息来源", ""),
+                "状态": "已确认" if row.get("品牌") else "待确认",
+            }
+        )
+        elements.append(
+            {
+                "项号": i,
+                "HS编码": row.get("HS编码", ""),
+                "品名": row.get("中文品名", ""),
+                "申报字段": "型号",
+                "申报内容": row.get("型号", "待确认"),
+                "信息来源": row.get("信息来源", ""),
+                "状态": "已确认" if row.get("型号") else "待确认",
+            }
+        )
+        elements.append(
+            {
+                "项号": i,
+                "HS编码": row.get("HS编码", ""),
+                "品名": row.get("中文品名", ""),
+                "申报字段": "其他",
+                "申报内容": row.get("其他", "待确认"),
+                "信息来源": row.get("信息来源", ""),
+                "状态": "待确认",
+            }
+        )
     return elements
 
 
@@ -179,37 +190,45 @@ def detect_risks(data: list[dict]) -> list[dict]:
         prefix = f"第{i}项"
         # 含无线功能但未提示SRRC
         if str(row.get("是否含无线", "")).strip() in ("是", "yes", "Yes"):
-            risks.append({
-                "风险等级": "严重",
-                "问题位置": prefix,
-                "问题说明": "含无线功能，需确认是否取得SRRC型号核准证",
-                "修改建议": "确认SRRC认证状态，如未取得需办理"
-            })
+            risks.append(
+                {
+                    "风险等级": "严重",
+                    "问题位置": prefix,
+                    "问题说明": "含无线功能，需确认是否取得SRRC型号核准证",
+                    "修改建议": "确认SRRC认证状态，如未取得需办理",
+                }
+            )
         # 含电池但未提示
         if str(row.get("是否含电池", "")).strip() in ("是", "yes", "Yes"):
-            risks.append({
-                "风险等级": "严重",
-                "问题位置": prefix,
-                "问题说明": "含电池，需确认UN38.3/MSDS/危包证及CCC认证状态",
-                "修改建议": "准备UN38.3报告、MSDS、危包证，确认CCC证书"
-            })
+            risks.append(
+                {
+                    "风险等级": "严重",
+                    "问题位置": prefix,
+                    "问题说明": "含电池，需确认UN38.3/MSDS/危包证及CCC认证状态",
+                    "修改建议": "准备UN38.3报告、MSDS、危包证，确认CCC证书",
+                }
+            )
         # 品名过宽
         pname = str(row.get("中文品名", "")).strip()
         if pname in ("电子产品", "设备", "配件", "零件", "机器", "仪器"):
-            risks.append({
-                "风险等级": "中等",
-                "问题位置": prefix,
-                "问题说明": f"品名'{pname}'过于宽泛，建议具体化",
-                "修改建议": "改为具体品名，如'激光投影仪'、'蓝牙音箱'等"
-            })
+            risks.append(
+                {
+                    "风险等级": "中等",
+                    "问题位置": prefix,
+                    "问题说明": f"品名'{pname}'过于宽泛，建议具体化",
+                    "修改建议": "改为具体品名，如'激光投影仪'、'蓝牙音箱'等",
+                }
+            )
         # 缺少型号
         if not str(row.get("型号", "")).strip():
-            risks.append({
-                "风险等级": "中等",
-                "问题位置": prefix,
-                "问题说明": "型号缺失，可能影响申报",
-                "修改建议": "补充产品型号"
-            })
+            risks.append(
+                {
+                    "风险等级": "中等",
+                    "问题位置": prefix,
+                    "问题说明": "型号缺失，可能影响申报",
+                    "修改建议": "补充产品型号",
+                }
+            )
     return risks
 
 

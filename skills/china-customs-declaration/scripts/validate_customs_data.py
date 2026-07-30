@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 海关报关资料校验脚本
 检查：必填字段缺失、数量错误、金额计算错误、重量异常、
       HS编码格式、型号重复、申报要素一致性等问题。
 """
 
-import json
 import csv
-import sys
+import json
 import os
+import sys
 from typing import Any
 
 
@@ -53,8 +52,13 @@ def validate_quantity(quantity: Any, row_num: int) -> list[str]:
     return errors
 
 
-def validate_amount(unit_price: Any, quantity: Any, total_price: Any,
-                    row_num: int, tolerance: float = 0.01) -> list[str]:
+def validate_amount(
+    unit_price: Any,
+    quantity: Any,
+    total_price: Any,
+    row_num: int,
+    tolerance: float = 0.01,
+) -> list[str]:
     """校验单价×数量=总价"""
     errors = []
     try:
@@ -81,9 +85,7 @@ def validate_weight(gross: Any, net: Any, row_num: int) -> list[str]:
         if g <= 0 or n <= 0:
             errors.append(f"第{row_num}行: 重量必须大于0（毛重{g}, 净重{n}）")
         if g < n:
-            errors.append(
-                f"第{row_num}行: 毛重({g})小于净重({n})，物理不可能"
-            )
+            errors.append(f"第{row_num}行: 毛重({g})小于净重({n})，物理不可能")
     except (ValueError, TypeError):
         errors.append(f"第{row_num}行: 重量字段不是有效数字")
     return errors
@@ -106,13 +108,21 @@ def validate_customs_data(data: list[dict[str, Any]]) -> dict:
         return {
             "errors": ["数据为空"],
             "warnings": [],
-            "summary": {"total_rows": 0, "error_count": 1, "warning_count": 0}
+            "summary": {"total_rows": 0, "error_count": 1, "warning_count": 0},
         }
 
     # 必填字段检查
     required_fields = [
-        "中文品名", "品牌", "型号", "数量", "单位",
-        "单价", "总价", "币种", "HS编码", "原产国"
+        "中文品名",
+        "品牌",
+        "型号",
+        "数量",
+        "单位",
+        "单价",
+        "总价",
+        "币种",
+        "HS编码",
+        "原产国",
     ]
 
     hs_code_map: dict[str, int] = {}  # HS编码 -> 行号
@@ -150,9 +160,9 @@ def validate_customs_data(data: list[dict[str, Any]]) -> dict:
 
         # 数量和金额校验
         errors.extend(validate_quantity(row.get("数量"), i))
-        errors.extend(validate_amount(
-            row.get("单价"), row.get("数量"), row.get("总价"), i
-        ))
+        errors.extend(
+            validate_amount(row.get("单价"), row.get("数量"), row.get("总价"), i)
+        )
 
         # 收集币种
         currency = str(row.get("币种", "")).strip()
@@ -197,9 +207,7 @@ def validate_customs_data(data: list[dict[str, Any]]) -> dict:
     }
 
     if total_gross_weight > 0 and total_gross_weight < total_net_weight:
-        errors.append(
-            f"总计毛重({total_gross_weight})小于总计净重({total_net_weight})"
-        )
+        errors.append(f"总计毛重({total_gross_weight})小于总计净重({total_net_weight})")
 
     return {"errors": errors, "warnings": warnings, "summary": summary}
 
@@ -211,7 +219,7 @@ def print_report(result: dict) -> None:
     print("=" * 60)
 
     summary = result["summary"]
-    print(f"\n数据概览:")
+    print("\n数据概览:")
     print(f"  总行数: {summary['total_rows']}")
     print(f"  总金额: {summary['total_amount']}")
     print(f"  币种: {summary['currencies']}")
@@ -220,8 +228,9 @@ def print_report(result: dict) -> None:
         print(f"  总毛重: {summary['total_gross_weight']} kg")
         print(f"  总净重: {summary['total_net_weight']} kg")
 
-    print(f"\n校验结果: {summary['error_count']}个错误, "
-          f"{summary['warning_count']}个警告")
+    print(
+        f"\n校验结果: {summary['error_count']}个错误, {summary['warning_count']}个警告"
+    )
 
     if result["errors"]:
         print(f"\n❌ 错误 ({len(result['errors'])}):")
