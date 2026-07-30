@@ -1,6 +1,6 @@
 {
   "name": "china-customs-declaration-expert",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "China import/export customs declaration & HS classification expert: HS code advice, standardized declaration elements, document checks, and regulatory risk screening.",
   "author": {
     "name": "Eason Wong",

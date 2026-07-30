@@ -1,0 +1,32 @@
+{
+  "registry_version": "1.0.0",
+  "last_updated": "2026-07-30",
+  "source_note": "申报要素数据为示例参考，非官方法定数据。具体申报要素以当年《中华人民共和国海关进出口商品涉税规范申报目录》及单一窗口系统为准。",
+  "schemas": {
+    "8528": {
+      "type": "example_only",
+      "source": "历史项目示例数据",
+      "effective_year": null,
+      "description": "投影仪、电视机等显示设备"
+    },
+    "8518": {
+      "type": "example_only",
+      "source": "历史项目示例数据",
+      "effective_year": null,
+      "description": "扬声器、音箱、耳机等音频设备"
+    },
+    "8507": {
+      "type": "example_only",
+      "source": "历史项目示例数据",
+      "effective_year": null,
+      "description": "蓄电池"
+    },
+    "8504": {
+      "type": "example_only",
+      "source": "历史项目示例数据",
+      "effective_year": null,
+      "description": "变压器、稳压电源、整流器"
+    }
+  },
+  "fallback_behavior": "如果未找到匹配的HS编码 Schema，输出'当前未加载该HS编码的有效申报要素定义'，标记需要通过单一窗口或当年规范申报目录核实，不得伪造法定字段。"
+}

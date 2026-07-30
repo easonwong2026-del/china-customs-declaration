@@ -28,8 +28,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install openpyxl
 
-      - name: Run tests
+      - name: Run legacy regression tests
         run: python skills/china-customs-declaration/tests/test_customs_scripts.py
+
+      - name: Run comprehensive test suite
+        run: |
+          python -m unittest discover -s tests -p "test_*.py" -v
 
   lint:
     runs-on: ubuntu-latest
@@ -44,14 +48,97 @@ jobs:
       - name: Install ruff
         run: pip install ruff
 
-      - name: Lint Python
-        run: ruff check skills/china-customs-declaration/scripts skills/china-customs-declaration/tests
+      - name: Lint Python (scripts)
+        run: ruff check skills/china-customs-declaration/scripts skills/china-customs-declaration/tests tests
 
       - name: Check format
-        run: ruff format --check skills/china-customs-declaration/scripts skills/china-customs-declaration/tests
+        run: ruff format --check skills/china-customs-declaration/scripts skills/china-customs-declaration/tests tests
+
+  source-manifest-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate source manifest exists
+        run: |
+          if [ ! -f "skills/china-customs-declaration/data/source-manifest.json" ]; then
+            echo "::error::source-manifest.json not found at skills/china-customs-declaration/data/source-manifest.json"
+            exit 1
+          fi
+          echo "✅ source-manifest.json found"
+
+      - name: Validate source manifest JSON
+        run: |
+          python -c "
+import json
+with open('skills/china-customs-declaration/data/source-manifest.json') as f:
+    m = json.load(f)
+assert 'sources' in m, 'Missing sources key'
+assert len(m['sources']) > 0, 'Empty sources list'
+for s in m['sources']:
+    assert s.get('source_id'), f'Missing source_id in {s}'
+    assert s.get('authority'), f'Missing authority in {s.get(\"source_id\")}'
+    assert s.get('accessed_at'), f'Missing accessed_at in {s.get(\"source_id\")}'
+    assert s.get('status'), f'Missing status in {s.get(\"source_id\")}'
+    if s.get('dynamic'):
+        assert s.get('accessed_at'), f'Dynamic source missing accessed_at: {s.get(\"source_id\")}'
+print('✅ source-manifest.json validation passed')
+print(f'   Sources: {len(m[\"sources\"])}')
+          "
+
+  package-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate plugin.json
+        run: |
+          python -c "
+import json
+with open('.codebuddy-plugin/plugin.json') as f:
+    p = json.load(f)
+assert p.get('version'), 'Missing version'
+assert p.get('agents'), 'Missing agents'
+assert p.get('skills'), 'Missing skills'
+print(f'✅ plugin.json valid (version: {p.get(\"version\")})')
+          "
+
+      - name: Validate agent files exist
+        run: |
+          python -c "
+import json
+with open('.codebuddy-plugin/plugin.json') as f:
+    p = json.load(f)
+for agent_ref in p.get('agents', []):
+    path = agent_ref
+    import os
+    assert os.path.exists(path), f'Agent file not found: {path}'
+    print(f'✅ Agent file exists: {path}')
+          "
+
+      - name: Validate SKILL.md exists
+        run: |
+          test -f skills/china-customs-declaration/SKILL.md && echo "✅ SKILL.md exists" || (echo "::error::SKILL.md not found" && exit 1)
+
+      - name: Validate templates exist
+        run: |
+          templates=(commercial-invoice-template customs-product-template declaration-elements-template packing-list-template)
+          for t in "${templates[@]}"; do
+            path="skills/china-customs-declaration/templates/${t}.xlsx"
+            if [ -f "$path" ]; then
+              echo "✅ $t.xlsx exists"
+            else
+              echo "⚠️  $t.xlsx not found (non-critical)"
+            fi
+          done
 
   build:
-    needs: [test, lint]
+    needs: [test, lint, source-manifest-validation, package-validation]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
@@ -66,7 +153,9 @@ jobs:
             -x "README.md" \
             -x "__pycache__/*" \
             -x "*.pyc" \
-            -x ".DS_Store"
+            -x ".DS_Store" \
+            -x "tests/*" \
+            -x "skills/china-customs-declaration/tests/*"
 
       - name: Upload to release
         uses: softprops/action-gh-release@v1

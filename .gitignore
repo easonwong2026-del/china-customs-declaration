@@ -14,7 +14,6 @@ tests/test_data/
 tests/test_output/
 *.bak
 comparison_report.json
-CHANGELOG.md
 
 # OS files
 .DS_Store

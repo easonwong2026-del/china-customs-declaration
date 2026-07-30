@@ -9,7 +9,12 @@ import csv
 import json
 import os
 import sys
+from decimal import Decimal
 from typing import Any
+
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _script_dir)
+from common.decimal_utils import round_amount, to_decimal, to_decimal_safe
 
 
 def validate_field(value: Any, field_name: str, row_num: int) -> list[str]:
@@ -39,17 +44,12 @@ def validate_hs_code(code: str, row_num: int) -> list[str]:
 
 def validate_quantity(quantity: Any, row_num: int) -> list[str]:
     """校验数量"""
-    errors = []
-    if quantity is None or str(quantity).strip() == "":
-        errors.append(f"第{row_num}行: 数量为空")
-        return errors
-    try:
-        qty = float(quantity)
-        if qty <= 0:
-            errors.append(f"第{row_num}行: 数量必须大于0（当前{qty}）")
-    except (ValueError, TypeError):
-        errors.append(f"第{row_num}行: 数量'{quantity}'不是有效数字")
-    return errors
+    qty = to_decimal(quantity)
+    if qty is None:
+        return [f"第{row_num}行: 数量'{quantity}'不是有效数字"]
+    if qty <= 0:
+        return [f"第{row_num}行: 数量必须大于0（当前{qty}）"]
+    return []
 
 
 def validate_amount(
@@ -57,37 +57,39 @@ def validate_amount(
     quantity: Any,
     total_price: Any,
     row_num: int,
-    tolerance: float = 0.01,
+    tolerance: str = "0.01",
 ) -> list[str]:
     """校验单价×数量=总价"""
-    errors = []
-    try:
-        up = float(unit_price) if unit_price else 0
-        qty = float(quantity) if quantity else 0
-        tp = float(total_price) if total_price else 0
-        expected = round(up * qty, 2)
-        if abs(expected - tp) > tolerance:
-            errors.append(
-                f"第{row_num}行: 金额计算错误 - "
-                f"单价({up})×数量({qty})={expected}, 但总价为{tp}"
-            )
-    except (ValueError, TypeError):
-        errors.append(f"第{row_num}行: 金额字段不是有效数字")
-    return errors
+    up = to_decimal(unit_price)
+    qty = to_decimal(quantity)
+    tp = to_decimal(total_price)
+
+    if up is None or qty is None or tp is None:
+        return [f"第{row_num}行: 金额字段不是有效数字"]
+
+    expected = round_amount(up * qty)
+    tol = to_decimal_safe(tolerance, Decimal("0.01"))
+
+    if abs(expected - tp) > tol:
+        return [
+            f"第{row_num}行: 金额计算错误 - 单价({up})×数量({qty})={expected}, 但总价为{tp}, 差异{abs(expected - tp)}"
+        ]
+    return []
 
 
 def validate_weight(gross: Any, net: Any, row_num: int) -> list[str]:
     """校验毛重≥净重"""
+    g = to_decimal(gross)
+    n = to_decimal(net)
+
+    if g is None or n is None:
+        return [f"第{row_num}行: 重量字段不是有效数字"]
+
     errors = []
-    try:
-        g = float(gross) if gross else 0
-        n = float(net) if net else 0
-        if g <= 0 or n <= 0:
-            errors.append(f"第{row_num}行: 重量必须大于0（毛重{g}, 净重{n}）")
-        if g < n:
-            errors.append(f"第{row_num}行: 毛重({g})小于净重({n})，物理不可能")
-    except (ValueError, TypeError):
-        errors.append(f"第{row_num}行: 重量字段不是有效数字")
+    if g <= 0 or n <= 0:
+        errors.append(f"第{row_num}行: 重量必须大于0（毛重{g}, 净重{n}）")
+    if g < n:
+        errors.append(f"第{row_num}行: 毛重({g})小于净重({n})，物理不可能")
     return errors
 
 
@@ -127,9 +129,9 @@ def validate_customs_data(data: list[dict[str, Any]]) -> dict:
 
     hs_code_map: dict[str, int] = {}  # HS编码 -> 行号
     model_hs_map: dict[str, set] = {}  # 型号 -> {HS编码}
-    total_amount = 0.0
-    total_net_weight = 0.0
-    total_gross_weight = 0.0
+    total_amount = Decimal("0")
+    total_net_weight = Decimal("0")
+    total_gross_weight = Decimal("0")
     currencies: set[str] = set()
 
     for i, row in enumerate(data, 1):
@@ -170,19 +172,19 @@ def validate_customs_data(data: list[dict[str, Any]]) -> dict:
             currencies.add(currency)
 
         # 金额累计
-        try:
-            total_amount += float(row.get("总价", 0))
-        except (ValueError, TypeError):
-            pass
+        d = to_decimal(row.get("总价", 0))
+        if d is not None:
+            total_amount += d
 
         # 重量校验（如有）
         if "毛重" in row and "净重" in row:
             errors.extend(validate_weight(row.get("毛重"), row.get("净重"), i))
-            try:
-                total_gross_weight += float(row.get("毛重", 0))
-                total_net_weight += float(row.get("净重", 0))
-            except (ValueError, TypeError):
-                pass
+            g = to_decimal(row.get("毛重", 0))
+            n = to_decimal(row.get("净重", 0))
+            if g is not None:
+                total_gross_weight += g
+            if n is not None:
+                total_net_weight += n
 
     # 同型号不同编码检查
     for model_name, codes in model_hs_map.items():
@@ -199,11 +201,11 @@ def validate_customs_data(data: list[dict[str, Any]]) -> dict:
         "total_rows": len(data),
         "error_count": len(errors),
         "warning_count": len(warnings),
-        "total_amount": round(total_amount, 2),
+        "total_amount": str(round_amount(total_amount)),
         "currencies": list(currencies),
         "unique_hs_codes": len(hs_code_map),
-        "total_gross_weight": round(total_gross_weight, 2),
-        "total_net_weight": round(total_net_weight, 2),
+        "total_gross_weight": str(round_amount(total_gross_weight, Decimal("0.001"))),
+        "total_net_weight": str(round_amount(total_net_weight, Decimal("0.001"))),
     }
 
     if total_gross_weight > 0 and total_gross_weight < total_net_weight:
