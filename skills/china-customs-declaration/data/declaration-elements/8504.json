@@ -1,0 +1,84 @@
+{
+  "hs_prefix": "8504",
+  "description": "变压器、稳压电源、整流器",
+  "version": "1.0.0",
+  "verification_status": "example_only",
+  "is_official": false,
+  "source": "历史项目示例数据，非官方核定数据",
+  "effective_year": null,
+  "disclaimer": "本文件为示例参考数据，非《中华人民共和国海关进出口商品涉税规范申报目录》的法定数据。实际申报时须以当年官方规范申报目录及单一窗口系统为准。",
+  "fields": [
+    {
+      "name": "品牌类型",
+      "order": 1,
+      "required": true,
+      "aliases": ["品牌类型"],
+      "source_keys": ["brand_type"],
+      "validation": {
+        "type": "enum",
+        "values": ["0-无品牌", "1-境内品牌", "2-境外品牌（贴牌生产）", "3-境外品牌（其他）"],
+        "note": "照实填报"
+      }
+    },
+    {
+      "name": "出口享惠情况",
+      "order": 2,
+      "required": true,
+      "aliases": ["出口享惠情况"],
+      "source_keys": ["export_preference"],
+      "validation": {
+        "type": "enum",
+        "values": ["1-出口货物在最终目的国可享受优惠关税", "2-出口货物在最终目的国不享受优惠关税", "3-出口货物不能确定在最终目的国享受优惠关税", "9-不适用内销货物"],
+        "note": "照实填报"
+      }
+    },
+    {
+      "name": "用途",
+      "order": 3,
+      "required": true,
+      "aliases": ["用途"],
+      "source_keys": ["usage"],
+      "validation": {
+        "type": "text",
+        "max_length": 100,
+        "note": "需明确填写具体用途场景，如'用于手机充电'、'用于工业设备供电'等"
+      }
+    },
+    {
+      "name": "品牌（中文或外文名称）",
+      "order": 4,
+      "required": true,
+      "aliases": ["品牌", "牌子", "商标"],
+      "source_keys": ["brand"],
+      "validation": {
+        "type": "text",
+        "max_length": 50,
+        "note": "须填写中文或外文品牌名称"
+      }
+    },
+    {
+      "name": "型号",
+      "order": 5,
+      "required": true,
+      "aliases": ["型号", "规格型号"],
+      "source_keys": ["model"],
+      "validation": {
+        "type": "text",
+        "max_length": 50,
+        "note": "须填写产品完整型号"
+      }
+    },
+    {
+      "name": "其他",
+      "order": 6,
+      "required": false,
+      "aliases": ["其他"],
+      "source_keys": ["other"],
+      "validation": {
+        "type": "text",
+        "max_length": 200,
+        "note": "补充说明其他需要申报的信息"
+      }
+    }
+  ]
+}
