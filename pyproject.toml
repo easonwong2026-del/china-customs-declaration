@@ -17,6 +17,13 @@ ignore = [
     "SIM105",
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"skills/china-customs-declaration/scripts/validate_customs_data.py" = ["E402"]
+"skills/china-customs-declaration/scripts/compare_documents.py" = ["E402"]
+"skills/china-customs-declaration/scripts/generate_declaration_table.py" = ["E402"]
+"skills/china-customs-declaration/scripts/declaration_elements.py" = ["E402"]
+"skills/china-customs-declaration/scripts/regulatory_risk_engine.py" = ["E402", "PERF203"]
+
 [tool.ruff.lint.pycodestyle]
 max-line-length = 120
 
