@@ -16,9 +16,7 @@ SCRIPT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scr
 sys.path.insert(0, SCRIPT_DIR)
 
 
-def run_script(
-    script_name: str, args: list[str] | None = None
-) -> tuple[int, str, str]:
+def run_script(script_name: str, args: list[str] | None = None) -> tuple[int, str, str]:
     """运行脚本并返回返回码、stdout、stderr"""
     script_path = os.path.join(SCRIPT_DIR, script_name)
     cmd = [sys.executable, script_path] + (args or [])
