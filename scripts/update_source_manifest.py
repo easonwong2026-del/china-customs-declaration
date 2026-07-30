@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from __future__ import annotations
 来源清单更新脚本
 功能：
   - 更新来源查询时间

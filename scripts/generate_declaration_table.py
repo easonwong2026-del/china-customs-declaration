@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from __future__ import annotations
 报关资料表格生成脚本
 从商品数据生成：
   - 商品资料汇总表

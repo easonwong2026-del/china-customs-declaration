@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from __future__ import annotations
 多份单据一致性比对脚本
 比较：合同、发票、箱单、商品资料、申报资料
 检查字段：品名、型号、数量、单价、总价、毛重、净重、件数、币种、原产国

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from __future__ import annotations
 海关报关资料校验脚本
 检查：必填字段缺失、数量错误、金额计算错误、重量异常、
       HS编码格式、型号重复、申报要素一致性等问题。
