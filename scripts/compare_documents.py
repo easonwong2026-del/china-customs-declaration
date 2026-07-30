@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 多份单据一致性比对脚本
 比较：合同、发票、箱单、商品资料、申报资料
 检查字段：品名、型号、数量、单价、总价、毛重、净重、件数、币种、原产国
 """
 
-import json
 import csv
-import sys
+import json
 import os
-from typing import Any
+import sys
 
 
 def load_document(filepath: str) -> list[dict]:
@@ -27,8 +25,9 @@ def load_document(filepath: str) -> list[dict]:
             raise ValueError(f"不支持的文件格式: {filepath}")
 
 
-def compare_field(doc1: list[dict], doc2: list[dict],
-                  field: str, doc1_name: str, doc2_name: str) -> list[dict]:
+def compare_field(
+    doc1: list[dict], doc2: list[dict], field: str, doc1_name: str, doc2_name: str
+) -> list[dict]:
     """逐行比较两个单据的指定字段"""
     differences = []
     max_rows = max(len(doc1), len(doc2))
@@ -42,31 +41,35 @@ def compare_field(doc1: list[dict], doc2: list[dict],
         if i < len(doc1):
             row1 = doc1[i]
             val1 = str(row1.get(field, "")).strip()
-            item1 = row1.get("中文品名", row1.get("品名", f"第{i+1}行"))
+            item1 = row1.get("中文品名", row1.get("品名", f"第{i + 1}行"))
 
         if i < len(doc2):
             row2 = doc2[i]
             val2 = str(row2.get(field, "")).strip()
-            item2 = row2.get("中文品名", row2.get("品名", f"第{i+1}行"))
+            item2 = row2.get("中文品名", row2.get("品名", f"第{i + 1}行"))
 
         if val1 != val2:
-            differences.append({
-                "行号": i + 1,
-                "字段": field,
-                "商品": item1 or item2,
-                f"{doc1_name}": val1 or "(缺失)",
-                f"{doc2_name}": val2 or "(缺失)",
-            })
+            differences.append(
+                {
+                    "行号": i + 1,
+                    "字段": field,
+                    "商品": item1 or item2,
+                    f"{doc1_name}": val1 or "(缺失)",
+                    f"{doc2_name}": val2 or "(缺失)",
+                }
+            )
 
     # 行数不一致
     if len(doc1) != len(doc2):
-        differences.append({
-            "行号": "-",
-            "字段": "(行数)",
-            "商品": "",
-            f"{doc1_name}": f"{len(doc1)}行",
-            f"{doc2_name}": f"{len(doc2)}行",
-        })
+        differences.append(
+            {
+                "行号": "-",
+                "字段": "(行数)",
+                "商品": "",
+                f"{doc1_name}": f"{len(doc1)}行",
+                f"{doc2_name}": f"{len(doc2)}行",
+            }
+        )
 
     return differences
 
@@ -86,11 +89,13 @@ def check_calculations(doc: list[dict], doc_name: str) -> list[dict]:
             tp = float(row.get("总价", 0))
             expected = round(up * qty, 2)
             if abs(expected - tp) > 0.01:
-                issues.append({
-                    "单据": doc_name,
-                    "行号": i,
-                    "问题": f"金额计算错误: 单价({up})×数量({qty})={expected}, 总价={tp}",
-                })
+                issues.append(
+                    {
+                        "单据": doc_name,
+                        "行号": i,
+                        "问题": f"金额计算错误: 单价({up})×数量({qty})={expected}, 总价={tp}",
+                    }
+                )
             total_from_items += tp
         except (ValueError, TypeError):
             pass
@@ -100,11 +105,13 @@ def check_calculations(doc: list[dict], doc_name: str) -> list[dict]:
             g = float(row.get("毛重", -1))
             n = float(row.get("净重", -1))
             if g >= 0 and n >= 0 and g < n:
-                issues.append({
-                    "单据": doc_name,
-                    "行号": i,
-                    "问题": f"毛重({g})<净重({n})",
-                })
+                issues.append(
+                    {
+                        "单据": doc_name,
+                        "行号": i,
+                        "问题": f"毛重({g})<净重({n})",
+                    }
+                )
             if g > 0:
                 total_gross += g
             if n > 0:
@@ -114,11 +121,13 @@ def check_calculations(doc: list[dict], doc_name: str) -> list[dict]:
 
     # 总毛重≥总净重
     if total_gross > 0 and total_net > 0 and total_gross < total_net:
-        issues.append({
-            "单据": doc_name,
-            "行号": "合计",
-            "问题": f"总毛重({total_gross})<总净重({total_net})",
-        })
+        issues.append(
+            {
+                "单据": doc_name,
+                "行号": "合计",
+                "问题": f"总毛重({total_gross})<总净重({total_net})",
+            }
+        )
 
     return issues
 
@@ -166,18 +175,24 @@ def compare_documents(files: dict[str, str]) -> dict:
                 # 尝试主字段名，如果不存在则用备选
                 has_field = False
                 for doc_data in [docs[name1], docs[name2]]:
-                    if doc_data and field in doc_data[0]:
-                        has_field = True
-                    elif doc_data and alt_field in doc_data[0]:
+                    if (
+                        doc_data
+                        and field in doc_data[0]
+                        or doc_data
+                        and alt_field in doc_data[0]
+                    ):
                         has_field = True
 
                 if has_field:
                     actual_field = field
-                    if docs[name1] and field not in docs[name1][0] and alt_field in docs[name1][0]:
+                    if (
+                        docs[name1]
+                        and field not in docs[name1][0]
+                        and alt_field in docs[name1][0]
+                    ):
                         actual_field = alt_field
                     diffs = compare_field(
-                        docs[name1], docs[name2],
-                        actual_field, name1, name2
+                        docs[name1], docs[name2], actual_field, name1, name2
                     )
                     all_differences.extend(diffs)
 
@@ -194,7 +209,7 @@ def compare_documents(files: dict[str, str]) -> dict:
             "compared_documents": doc_names,
             "total_field_diffs": len(all_differences),
             "total_calc_issues": len(all_calc_issues),
-        }
+        },
     }
 
 
@@ -211,7 +226,7 @@ def print_report(result: dict) -> None:
         print(f"\n❌ 字段差异 ({len(result['field_differences'])}处):")
         print("-" * 60)
         for diff in result["field_differences"]:
-            srcs = [k for k in diff.keys() if k not in ("行号", "字段", "商品")]
+            srcs = [k for k in diff if k not in ("行号", "字段", "商品")]
             print(f"  行{diff['行号']} | {diff['字段']} | {diff['商品']}")
             for src in srcs:
                 print(f"    {src}: {diff[src]}")
@@ -271,6 +286,8 @@ if __name__ == "__main__":
     print(f"\n报告已保存到: {output_path}")
 
     # 返回退出码
-    if result["summary"]["total_field_diffs"] > 0 or \
-       result["summary"]["total_calc_issues"] > 0:
+    if (
+        result["summary"]["total_field_diffs"] > 0
+        or result["summary"]["total_calc_issues"] > 0
+    ):
         sys.exit(1)
