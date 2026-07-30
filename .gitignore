@@ -1,0 +1,32 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Test artifacts
+tests/test_data/
+tests/test_output/
+*.bak
+comparison_report.json
+CHANGELOG.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Distributions
+dist/
+build/
+*.egg
