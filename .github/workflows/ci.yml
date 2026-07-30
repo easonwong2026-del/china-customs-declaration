@@ -29,7 +29,7 @@ jobs:
           pip install openpyxl
 
       - name: Run tests
-        run: python tests/test_customs_scripts.py
+        run: python skills/china-customs-declaration/tests/test_customs_scripts.py
 
   lint:
     runs-on: ubuntu-latest
@@ -45,10 +45,10 @@ jobs:
         run: pip install ruff
 
       - name: Lint Python
-        run: ruff check scripts/ tests/
+        run: ruff check skills/china-customs-declaration/scripts skills/china-customs-declaration/tests
 
       - name: Check format
-        run: ruff format --check scripts/ tests/
+        run: ruff format --check skills/china-customs-declaration/scripts skills/china-customs-declaration/tests
 
   build:
     needs: [test, lint]
@@ -57,19 +57,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build skill.zip
+      - name: Build expert package zip
         run: |
-          zip -r skill.zip . \
+          zip -r china-customs-declaration-expert.zip . \
             -x ".git/*" \
             -x ".github/*" \
             -x ".gitignore" \
             -x "README.md" \
             -x "__pycache__/*" \
-            -x "*.pyc"
+            -x "*.pyc" \
+            -x ".DS_Store"
 
       - name: Upload to release
         uses: softprops/action-gh-release@v1
         with:
-          files: skill.zip
+          files: china-customs-declaration-expert.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
